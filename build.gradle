@@ -1,0 +1,68 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.2.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+plugins {
+    id 'com.google.protobuf' version "0.8.7"
+    id 'com.palantir.docker' version "0.22.1"
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.palantir.docker'
+
+
+group = 'com.graphql-java.tutorial'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+protobuf {
+    generatedFilesBaseDir = "${projectDir}/src/main/generated"
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.6.1'
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/generated/main/java'
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.graphql-java:graphql-java:11.0'
+    implementation 'com.graphql-java:graphql-java-spring-boot-starter-webmvc:1.0'
+    implementation 'com.graphql-java:graphql-spring-boot-starter:5.0.2'
+    implementation 'com.graphql-java:graphql-java-tools:5.2.4'
+    implementation 'com.google.guava:guava:26.0-jre'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.foundationdb:fdb-record-layer-core-pb3:2.7.74.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+task unpack(type: Copy) {
+    dependsOn bootJar
+    from(zipTree(tasks.bootJar.outputs.files.singleFile))
+    into("build/dependency")
+}
+
+docker {
+    name "guns1234/tracker:0.0.1"
+    copySpec.from(tasks.unpack.outputs).into("dependency")
+    buildArgs(['DEPENDENCY': "dependency"])
+}

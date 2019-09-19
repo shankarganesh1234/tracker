@@ -1,0 +1,25 @@
+syntax = "proto2";
+import "record_metadata_options.proto";
+
+option java_outer_classname = "TaskProto";
+package com.task;
+
+message Task {
+    required string id = 1;
+    required string key = 2;
+    required string name = 3;
+    required int64 dateTime = 4;
+    optional string tag = 5;
+    required string status = 6;
+}
+
+enum Status {
+    CREATED = 1;
+    DONE = 2;
+    DELETED = 3;
+}
+
+message UnionDescriptor {
+    option (com.apple.foundationdb.record.record).usage = UNION;
+    optional Task _Task = 1;
+}
